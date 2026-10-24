@@ -1,0 +1,10 @@
+# Versi dikunci (pinned) supaya angka Tabel 1 di laporan bisa direproduksi.
+# PENTING: jangan ganti opencv-python ke 5.x. Di OpenCV 5.0 deteksi sampel 09 gagal
+# (galat sudut ~395 px) sehingga rata-rata OCR turun dari 93,3% ke 88,4%.
+opencv-python==4.13.0.92
+numpy==2.4.6
+scikit-image==0.26.0
+scipy==1.18.1
+matplotlib==3.11.2
+Pillow==13.0.0
+pytesseract==0.3.13

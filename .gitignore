@@ -1,0 +1,16 @@
+# Python / virtual env
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Keluaran yang bisa dibuat ulang
+hasil/
+output/
+results/*.png
+results/*.jpg
+!results/metrics.json
+
+# macOS & editor
+.DS_Store
+.idea/

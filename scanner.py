@@ -34,7 +34,7 @@ def detect_paper_region(small):
     return cv2.boxPoints(cv2.minAreaRect(hull))
 
 def detect_document(img, work_h=700):
-    """Return 4 corners (in original image coordinates) and a debug edge map."""
+    """Return 4 corners (in original image coordinates), a debug edge map, found flag, and the method used."""
     scale = work_h / img.shape[0]
     small = cv2.resize(img, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
     gray = cv2.GaussianBlur(cv2.cvtColor(small, cv2.COLOR_BGR2GRAY), (7, 7), 0)
@@ -46,15 +46,17 @@ def detect_document(img, work_h=700):
     for c in cnts:
         approx = cv2.approxPolyDP(c, 0.02 * cv2.arcLength(c, True), True)
         if len(approx) == 4 and cv2.contourArea(approx) > min_area and cv2.isContourConvex(approx):
-            return order_points(approx.reshape(4, 2) / scale), edges, True
-    if cnts and cv2.contourArea(cnts[0]) > min_area:           # fallback: min-area rectangle
-        box = cv2.boxPoints(cv2.minAreaRect(cnts[0]))
-        return order_points(box / scale), edges, True
-    q = detect_paper_region(small)                              # [tambahan] fallback 2: segmentasi kertas terang
+            return order_points(approx.reshape(4, 2) / scale), edges, True, "kontur"
+    # [revisi v2] segmentasi kertas dicoba sebelum minAreaRect: pada uji 15 foto nyata, minAreaRect gagal 2/2
+    # (kotak tegak lurus tidak mengikuti perspektif / mencakup seluruh bingkai), segmentasi berhasil 5/5.
+    q = detect_paper_region(small)                              # fallback 1: segmentasi kertas terang
     if q is not None:
-        return order_points(q / scale), edges, True
+        return order_points(q / scale), edges, True, "segmentasi"
+    if cnts and cv2.contourArea(cnts[0]) > min_area:           # fallback 2: min-area rectangle
+        box = cv2.boxPoints(cv2.minAreaRect(cnts[0]))
+        return order_points(box / scale), edges, True, "minAreaRect"
     h, w = img.shape[:2]                                        # last resort: whole image
-    return order_points([[0, 0], [w, 0], [w, h], [0, h]]), edges, False
+    return order_points([[0, 0], [w, 0], [w, h], [0, h]]), edges, False, "seluruh_gambar"
 
 def warp(img, corners):
     tl, tr, br, bl = corners
@@ -77,7 +79,7 @@ def enhance(warped):
     return sharp, binary
 
 def scan(img):
-    corners, edges, found = detect_document(img)
+    corners, edges, found, method = detect_document(img)
     warped = warp(img, corners)
     gray_out, bin_out = enhance(warped)
-    return dict(corners=corners, edges=edges, found=found, warped=warped, gray=gray_out, binary=bin_out)
+    return dict(corners=corners, edges=edges, found=found, method=method, warped=warped, gray=gray_out, binary=bin_out)

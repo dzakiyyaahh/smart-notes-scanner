@@ -1,0 +1,16 @@
+file,latar,sudut,terdeteksi,metode,ms,resolusi,ocr_foto,ocr_scan_gray,ocr_scan_biner,label_manual
+mat_miring_02.jpg,mat,miring,1,minAreaRect,441,2576x1449,8.3,12.7,10.9,salah
+mat_miring_03.jpg,mat,miring,1,segmentasi,192,1449x2576,12.4,63.8,74.3,benar
+mat_miring_04.jpg,mat,miring,1,segmentasi,94,1449x2576,17.7,61.1,75.1,benar
+mat_miring_05.jpg,mat,miring,1,segmentasi,101,1449x2576,23.8,57.7,75.6,benar
+mat_tegak_01.jpg,mat,tegak,1,kontur,125,1449x2576,74.1,58.4,71.1,benar
+mat_tegak_06.jpg,mat,tegak,1,kontur,126,1449x2576,53.7,58.4,70.3,benar
+mat_tegak_07.jpg,mat,tegak,1,segmentasi,94,1449x2576,61.3,65.7,68.3,benar
+seprai-gelap_tegak_15.jpg,seprai-gelap,tegak,1,kontur,69,1449x2576,77.6,68.7,73.4,benar
+seprai_miring_09.jpg,seprai,miring,1,kontur,88,1449x2576,17.6,46.7,59.8,salah
+seprai_miring_10.jpg,seprai,miring,1,segmentasi,78,1449x2576,11.4,58.3,75.6,benar
+seprai_miring_12.jpg,seprai,miring,1,kontur,91,1449x2576,53.0,60.9,67.5,benar
+seprai_miring_13.jpg,seprai,miring,1,minAreaRect,117,1449x2576,37.2,30.2,49.9,salah
+seprai_tegak_08.jpg,seprai,tegak,1,kontur,141,1449x2576,66.5,55.5,75.1,benar
+seprai_tegak_11.jpg,seprai,tegak,1,kontur,92,1449x2576,69.1,54.0,72.7,benar
+seprai_tegak_14.jpg,seprai,tegak,1,kontur,96,1449x2576,68.6,56.1,64.4,benar

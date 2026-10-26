@@ -3,6 +3,8 @@
 **Digitalisasi Foto Catatan Kuliah dengan Koreksi Perspektif dan Peningkatan Kualitas Citra**
 Kelompok 4 · Teknologi Berkembang (Computer Vision) · OpenCV klasik, tanpa deep learning
 
+Repository: https://github.com/dzakiyyaahh/smart-notes-scanner
+
 Program ini mengubah foto catatan kuliah dari ponsel (miring, ada latar meja, pencahayaan tidak merata) menjadi citra dokumen yang tegak, bersih, dan mudah dibaca.
 
 **Pipeline:** resize → Gaussian blur → Canny → morphological closing → kontur 4 titik (`approxPolyDP`, cadangan `minAreaRect`) → transformasi perspektif → koreksi iluminasi (dilate + median, lalu divide) → CLAHE + unsharp masking (keluaran *gray*) → Otsu (keluaran *binary*).
@@ -14,7 +16,8 @@ smart-notes-scanner/
 ├── scanner.py         # inti pipeline: detect_document, warp, enhance, scan
 ├── main.py            # CLI untuk foto sendiri
 ├── make_samples.py    # pembuat 10 foto sintetis + ground truth
-├── evaluate.py        # evaluasi: galat sudut, SSIM, OCR, waktu proses
+├── evaluate.py        # evaluasi data sintetis: galat sudut, SSIM, OCR, waktu proses
+├── evaluate_real.py   # evaluasi foto nyata: deteksi, metode, waktu, OCR opsional, rekap
 ├── make_figures.py    # gambar 2–5 untuk laporan
 ├── requirements.txt   # versi library dikunci
 ├── fonts/             # font DejaVu Sans, dipakai make_samples.py
@@ -93,11 +96,38 @@ python make_figures.py    # opsional: membuat fig2–fig5 untuk laporan
 Baris terakhir keluaran yang diharapkan:
 
 ```
-MEAN err 2.3 ssim 0.816 raw 92.4 warp 86.3 full 93.3 ms ~60 success 10/10
+MEAN err 2.3 ssim 0.816 raw 98.4 warp 93.9 full 98.1 ms ~60 success 10/10
 ```
 
 Nilai `ms` (waktu proses) bisa berbeda tergantung laptop. Nilai lainnya harus sama persis.
 Kalau ingin membuat ulang sampel dari awal, jalankan `python make_samples.py`; hasilnya identik karena seed-nya tetap.
+
+## 5. Evaluasi pada foto nyata
+
+Beri nama foto dengan pola `<latar>_<sudut>_<nomor>.jpg`, misalnya `seprai_miring_01.jpg` atau `meja-gelap_tegak_02.jpg`, lalu taruh di folder `foto_uji/`.
+Kalau ingin mengukur OCR, simpan teks asli halaman itu di file `.txt` dengan nama yang sama (misalnya `handout_tegak_01.txt`).
+
+```bash
+python evaluate_real.py --input foto_uji --output hasil_uji
+```
+
+Perintah ini menghasilkan `hasil_uji/hasil_uji.csv` dan `hasil_uji/lembar_kontak_XX.jpg`. Lihat lembar kontaknya, lalu isi kolom `label_manual` di CSV dengan `benar` (garis hijau mengikuti tepi kertas dan hasil scan tegak serta terbaca) atau `salah`. Setelah itu:
+
+```bash
+python evaluate_real.py --rekap hasil_uji/hasil_uji.csv
+```
+
+Rekap per latar, sudut, dan metode deteksi tersimpan di `hasil_uji/rekap.md`.
+Label manual tetap diperlukan karena status "terdeteksi" belum tentu benar. Metode segmentasi bisa saja menemukan bentuk 4 titik yang ikut mencakup halaman sebelah.
+
+## Keterbatasan yang diketahui
+
+- Kertas harus lebih terang dan cukup kontras dari latarnya. Pada latar putih atau terang, deteksi kertas sering gagal.
+- Pada buku spiral yang terbuka, halaman sebelah bisa ikut terdeteksi, terutama kalau difoto dari sudut miring.
+- Halaman yang melengkung (dekat jilidan) tidak diluruskan, karena transformasi perspektif hanya mengoreksi bidang datar.
+- Akurasi OCR Tesseract pada tulisan tangan jauh lebih rendah daripada pada teks cetak, dan sangat bergantung pada kerapian tulisan.
+- Orientasi halaman tidak dikoreksi. Halaman yang difoto menyamping (landscape) tetap menyamping di hasil scan, sehingga OCR gagal.
+- Hanya memproses gambar diam (JPG/PNG). Tidak ada mode kamera langsung, dan file HEIC dari iPhone harus diubah ke JPG dulu.
 
 ---
 
@@ -148,4 +178,6 @@ Setelah itu, masukkan URL repo ke laporan di bagian **[URL GitHub]** dan Lampira
 - Versi library dikunci di `requirements.txt`. Dengan OpenCV 5.0, deteksi sudut sampel 09 gagal (galat sekitar 395 px) sehingga rata-rata OCR turun ke 88,4%.
 - Tambahan dibanding versi awal: opsi `--compare` di `main.py`, folder `samples/`/`results/` dibuat otomatis, dan font disertakan di `fonts/` supaya sampel identik di semua OS.
 - **Fallback baru di `scanner.py` (`detect_paper_region`)**: dipakai hanya jika deteksi kontur Canny **dan** `minAreaRect` sama-sama gagal. Alasannya, pada foto nyata (buku spiral di atas seprai) tepi kertas tidak membentuk segi empat tertutup, karena satu sisi berupa spiral dan lipatan kain ikut terdeteksi sebagai tepi. Fallback ini mencari area kertas yang terang dengan Otsu pada kanal L (LAB), lalu memotong area itu di sepanjang tepi Canny agar terpisah dari benda terang lain, dan mengambil convex hull dari komponen terbesar sebagai 4 titik. Hasil evaluasi pada data sintetis (Tabel 1) **tidak berubah**, karena fallback ini tidak pernah terpicu di sana.
+- **Revisi v2 urutan fallback**: segmentasi kertas (`detect_paper_region`) kini dicoba sebelum `minAreaRect`. Pada uji 15 foto nyata, `minAreaRect` gagal 2 dari 2 kasus, sedangkan segmentasi berhasil 5 dari 5. Tingkat keberhasilan naik dari 12/15 menjadi 13/15. Tabel 1 tidak berubah karena kesepuluh sampel sintetis terdeteksi oleh metode kontur utama.
+- **Metrik OCR diperbaiki** (`autojunk=False` pada `difflib.SequenceMatcher`). Pengaturan bawaan membuang karakter yang sering muncul pada teks lebih dari 200 karakter, sehingga skor OCR anjlok pada keluaran yang tidak sempurna. Akibatnya angka OCR Tabel 1 berubah: raw 92,4 → 98,4; warp 86,3 → 93,9; full 93,3 → 98,1; gray 87,3 → 96,2. Galat sudut, SSIM, dan tingkat keberhasilan tidak berubah.
 - Font DejaVu Sans memakai lisensi Bitstream Vera (bebas didistribusikan). Lihat `fonts/LICENSE-DejaVu.txt`.

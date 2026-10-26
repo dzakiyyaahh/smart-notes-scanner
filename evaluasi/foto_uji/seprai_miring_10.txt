@@ -1,0 +1,20 @@
+28/9 26
+PPPL - Domain Modeling
+Domain Model : "Bagan tokoh & hubungan". KONSEP.
+Di buat sebelum Robustness Diagram.
+Updated Domain Model : Revisi setelah Robustness
+untuk menemukan objek-objek
+baru yang dibutuhkan sistem.
+SRS (Software Requirement Specification).
+Apa bedanya ER Diagram dengan Domain Model?
+- ERD fokus untuk menyimpan data di database.
+table
+Primary key , tipe data dan juga relasi.
+Foreign key
+- Domain modeling ini membuat class diagram.
+Seperti bagan tokoh untuk sistem software kita.
+Di dalam Domain Modeling adalah relasi.
+Domain model = OBJEK
+Dalam ICONIX, domain model awal diturunkan dari
+requirement dan GUI prototype, bukan hanya dari
+nama use case.

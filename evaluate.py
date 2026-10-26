@@ -6,8 +6,10 @@ from make_samples import TEXT  # noqa (re-generates samples deterministically)
 GT_TEXT = "\n".join(TEXT)
 def norm(s): return " ".join(s.lower().split())
 def ocr_acc(img):
+    # autojunk=False: heuristik bawaan difflib membuang karakter yang sering muncul pada teks >200 karakter,
+    # sehingga skor OCR anjlok pada keluaran yang tidak sempurna (mis. sampel 09: 45,5% -> 85,9%).
     txt = pytesseract.image_to_string(img, config="--psm 6")
-    return difflib.SequenceMatcher(None, norm(GT_TEXT), norm(txt)).ratio()*100
+    return difflib.SequenceMatcher(None, norm(GT_TEXT), norm(txt), autojunk=False).ratio()*100
 def sharp(g): return cv2.Laplacian(g, cv2.CV_64F).var()
 os.makedirs("results", exist_ok=True)
 rows = []

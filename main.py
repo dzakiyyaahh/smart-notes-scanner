@@ -27,7 +27,10 @@ def main():
     files = sorted(glob.glob(os.path.join(a.input, "*"))) if os.path.isdir(a.input) else [a.input]
     for f in files:
         img = cv2.imread(f)
-        if img is None: continue
+        if img is None:
+            if not os.path.basename(f).startswith(".") and not f.lower().endswith((".txt", ".csv", ".md")):
+                print(f"{os.path.basename(f)}: dilewati, tidak bisa dibaca (HEIC atau bukan gambar? ubah ke JPG)")
+            continue
         r = scan(img); base = os.path.splitext(os.path.basename(f))[0]
         cv2.imwrite(f"{a.output}/{base}_gray.png", r["gray"])
         cv2.imwrite(f"{a.output}/{base}_binary.png", r["binary"])
@@ -36,5 +39,5 @@ def main():
             cv2.imwrite(f"{a.output}/{base}_detect.jpg", vis); cv2.imwrite(f"{a.output}/{base}_edges.png", r["edges"])
         if a.compare:
             cv2.imwrite(f"{a.output}/{base}_compare.jpg", side_by_side(img, r["binary"]))
-        print(f"{base}: dokumen {'terdeteksi' if r['found'] else 'TIDAK terdeteksi (fallback)'}")
+        print(f"{base}: dokumen {'terdeteksi' if r['found'] else 'TIDAK terdeteksi (fallback)'} [metode: {r['method']}]")
 if __name__ == "__main__": main()
